@@ -5,3 +5,5 @@ public/build
 .env.local
 .env.build
 .vercel
+
+.vercel
