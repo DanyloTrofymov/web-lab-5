@@ -3,8 +3,10 @@ import { user, isAuthenticated, popupOpen, token } from './store';
 import config from './auth-config';
 
 async function createClient() {
+  //eslint-disable-next-line
   return await createAuth0Client({
     domain: config.domain,
+    //eslint-disable-next-line
     client_id: config.clientId,
   });
 }

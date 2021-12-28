@@ -1,4 +1,3 @@
-
 <script>
   import request from './helper/request';
   import { Operations } from './helper/operation';
@@ -15,7 +14,7 @@
 
   token.subscribe(async (tokenValue) => {
     if (tokenValue != '') {
-      const {lab5_todo} = await request.startFetchMyQuery(
+      const { lab5_todo } = await request.startFetchMyQuery(
         Operations.queryGetAll(),
       );
       todos.set(lab5_todo);
@@ -29,8 +28,8 @@
     user.set(await auth0Client.getUser());
     if (isAuthenticated) {
       const accessToken = await auth0Client.getIdTokenClaims();
-      if(accessToken){
-      token.set(accessToken.__raw);
+      if (accessToken) {
+        token.set(accessToken.__raw);
       }
     }
   });
@@ -45,23 +44,23 @@
 
   const addTask = async () => {
     loaderEnabled = true;
-      if (titleValue == '') {
-        openModal('Title can not be empty!');
-        loaderEnabled = false;
-        return;
-      }
-      if (deadlineValue == '') {
-        const { insert_lab5_todo } = await request.startExecuteMyMutation(
-          Operations.mutationInsertWithoutDeadline(titleValue, bodyValue),
-        );
-        todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
-      } else {
-        const { insert_lab5_todo } = await request.startExecuteMyMutation(
-          Operations.mutationInsert(titleValue, bodyValue, deadlineValue),
-        );
-        todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
-      }
+    if (titleValue == '') {
+      openModal('Title can not be empty!');
       loaderEnabled = false;
+      return;
+    }
+    if (deadlineValue == '') {
+      const { insert_lab5_todo } = await request.startExecuteMyMutation(
+        Operations.mutationInsertWithoutDeadline(titleValue, bodyValue),
+      );
+      todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
+    } else {
+      const { insert_lab5_todo } = await request.startExecuteMyMutation(
+        Operations.mutationInsert(titleValue, bodyValue, deadlineValue),
+      );
+      todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
+    }
+    loaderEnabled = false;
   };
   const deleteTask = async (id) => {
     loaderEnabled = true;
@@ -94,10 +93,10 @@
 <main>
   <div>
     {#if $isAuthenticated}
-        {#if loaderEnabled}
-          <div class="loader" />
-        {/if}
-        {#if modalText}
+      {#if loaderEnabled}
+        <div class="loader" />
+      {/if}
+      {#if modalText}
         <div class="modal-container">
           <div class="modal">
             <h1>Error</h1>
@@ -108,61 +107,61 @@
           </div>
         </div>
       {/if}
-      <button class=login on:click={logout}>Log out</button>
-        <form class="form" on:submit|preventDefault={addTask}>
-          <div class="form__section">
-            <input
-              type="text"
-              name="Title"
-              placeholder="Title"
-              bind:value={titleValue}
-            />
-            <input
-              type="text"
-              body="body"
-              placeholder="body"
-              bind:value={bodyValue}
-            />
-            <input
-              type="date"
-              body="deadline"
-              placeholder="deadline"
-              bind:value={deadlineValue}
-            />
-          </div>
-          <button>Add task</button>
-        </form>
-        <table border="1">
-          <caption>ToDo</caption>
+      <button class="login" on:click={logout}>Log out</button>
+      <form class="form" on:submit|preventDefault={addTask}>
+        <div class="form__section">
+          <input
+            type="text"
+            name="Title"
+            placeholder="Title"
+            bind:value={titleValue}
+          />
+          <input
+            type="text"
+            body="body"
+            placeholder="body"
+            bind:value={bodyValue}
+          />
+          <input
+            type="date"
+            body="deadline"
+            placeholder="deadline"
+            bind:value={deadlineValue}
+          />
+        </div>
+        <button>Add task</button>
+      </form>
+      <table border="1">
+        <caption>ToDo</caption>
+        <tr>
+          <th>Done</th>
+          <th>Id</th>
+          <th>Title</th>
+          <th>Body</th>
+          <th>Deadline</th>
+          <th>Delete</th>
+        </tr>
+        {#each $todos as task}
           <tr>
-            <th>Done</th>
-            <th>Id</th>
-            <th>Title</th>
-            <th>Body</th>
-            <th>Deadline</th>
-            <th>Delete</th>
+            <td
+              ><input
+                type="checkbox"
+                checked={task.done}
+                on:click={() => updateChecked(task.id, !task.done)}
+              /></td
+            >
+            <td>{task.id}</td>
+            <td>{task.noteTitle}</td>
+            <td>{task.noteBody}</td>
+            <td>{task.deadline}</td>
+            <td
+              ><button class="delete" on:click={() => deleteTask(task.id)}
+                >Delete</button
+              ></td
+            >
           </tr>
-          {#each $todos as task}
-            <tr>
-              <td
-                ><input
-                  type="checkbox"
-                  checked={task.done}
-                  on:click={() => updateChecked(task.id, !task.done)}
-                /></td
-              >
-              <td>{task.id}</td>
-              <td>{task.noteTitle}</td>
-              <td>{task.noteBody}</td>
-              <td>{task.deadline}</td>
-              <td
-                ><button class="delete" on:click={() => deleteTask(task.id)}
-                  >Delete</button
-                ></td
-              >
-            </tr>
-          {/each}
-        </table>
+        {/each}
+      </table>
     {:else}
       <button class="login mainpage" on:click={login}>Log in</button>
     {/if}
@@ -180,9 +179,8 @@
     --delete-color: rgb(163, 13, 13);
     --table-color: #3e3cca;
     --button-color: #4caf50;
-    --login-button: #4676D7;
+    --login-button: #4676d7;
     --login-button-hover: #1d49aa;
-
   }
   main {
     margin: 0;
@@ -219,33 +217,33 @@
   button {
     cursor: pointer;
   }
-  .login{
+  .login {
     height: 50px;
     width: 200px;
-  appearance: none;
-  border: 0;
-  border-radius: 5px;
-  background: var(--login-button);
-  color: var(--light-color);
-  padding: 8px 16px;
-  font-size: 16px;
-  position: absolute;
-  right: 0;
+    appearance: none;
+    border: 0;
+    border-radius: 5px;
+    background: var(--login-button);
+    color: var(--light-color);
+    padding: 8px 16px;
+    font-size: 16px;
+    position: absolute;
+    right: 0;
   }
   .login:hover {
-  background: var(--login-button-hover);
-}
+    background: var(--login-button-hover);
+  }
 
-.login:focus {
-  outline: none;
-  box-shadow: 0 0 0 4px var(--light-color);
-}
-.login.mainpage{
-  position: fixed;
+  .login:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px var(--light-color);
+  }
+  .login.mainpage {
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translateX(-50%);
-}
+  }
   caption {
     background: var(--table-color);
     border-top-left-radius: 3px;
