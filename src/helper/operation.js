@@ -7,7 +7,6 @@ export class Operations {
       id
       noteBody
       noteTitle
-      userid
     }
   }
   `;
@@ -50,14 +49,16 @@ mutation MyMutation($deadline: timestamptz = "") {
 `;
   static mutationChecked = (id, checked) =>
     `mutation MyMutation {
-      update_lab5_todo_by_pk(pk_columns:
-      {id: "${id}"},
-      _set: {done: ${checked}}){
-      id
-      noteBody
-      noteTitle
-      done
-      deadline
+      update_lab5_todo(where: {id: {_eq: ${id}}}, _set: {done: ${checked}}}) {
+        returning {
+          deadline
+          done
+          id
+          noteBody
+          noteTitle
+          userid
+        }
+      }
     }
-}`;
+    `;
 }

@@ -14,10 +14,13 @@ async function loginWithPopup(client, options) {
   try {
     await client.loginWithPopup(options);
     user.set(await client.getUser());
-    const accessToken = await client.getIdTokenClaims();
-    token.set(accessToken.__raw);
     isAuthenticated.set(true);
+    const accessToken = await client.getIdTokenClaims();
+    if (accessToken) {
+      token.set(accessToken.__raw);
+    }
   } catch (e) {
+    // eslint-disable-next-line
     console.error(e);
   } finally {
     popupOpen.set(false);

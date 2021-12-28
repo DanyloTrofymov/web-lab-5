@@ -3,17 +3,20 @@ import { get } from 'svelte/store';
 
 class Request {
   async fetchGraphQL(operationsDoc, operationName, variables) {
-    const result = await fetch('https://todoweblabs.herokuapp.com/v1/graphql', {
-      method: 'POST',
-      body: JSON.stringify({
-        query: operationsDoc,
-        variables,
-        operationName,
-      }),
-      headers: {
-        Authorization: `Bearer ${get(token)}`,
+    const result = await fetch(
+      'https://web-lab-5-jwt.herokuapp.com/v1/graphql',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          query: operationsDoc,
+          variables,
+          operationName,
+        }),
+        headers: {
+          Authorization: `Bearer ${get(token)}`,
+        },
       },
-    });
+    );
     return await result.json(); // eslint-disable-line
   }
   fetchMyQuery(operationsDoc) {

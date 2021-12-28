@@ -10,38 +10,21 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-node-resolve": "^11.0.0",
+    "@rollup/plugin-replace": "^3.0.1",
     "dotenv": "^10.0.0",
-    "eslint": "^8.5.0",
-    "eslint-config-metarhia": "^7.0.1",
-    "eslint-plugin-import": "^2.25.3",
-    "eslint-plugin-sonarjs": "^0.11.0",
-    "prettier": "^2.5.1",
-    "prettier-plugin-svelte": "^2.5.1",
     "rollup": "^2.3.4",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.0",
-    "rollup-plugin-polyfill-node": "^0.8.0",
     "rollup-plugin-svelte": "^7.0.0",
     "rollup-plugin-terser": "^7.0.0",
-    "stylelint": "^14.2.0",
-    "stylelint-config-standard": "^24.0.0",
     "svelte": "^3.0.0"
   },
   "dependencies": {
+    "dotenv": "^10.0.0",
     "@auth0/auth0-spa-js": "^1.19.3",
     "graphql": "^16.2.0",
-    "sirv-cli": "^1.0.0"
-  },
-  "description": "*Psst — looking for a more complete solution? Check out [SvelteKit](https://kit.svelte.dev), the official framework for building web applications of all sizes, with a beautiful development experience and flexible filesystem-based routing.*",
-  "main": "rollup.config.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/DanyloTrofymov/web-lab-5.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/DanyloTrofymov/web-lab-5/issues"
-  },
-  "homepage": "https://github.com/DanyloTrofymov/web-lab-5#readme"
+    "rollup-plugin-polyfill-node": "^0.8.0",
+    "sirv-cli": "^1.0.0",
+    "svelte-environment-variables": "^1.0.4"
+  }
 }

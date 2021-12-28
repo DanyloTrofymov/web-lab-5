@@ -1,3 +1,4 @@
+
 <script>
   import request from './helper/request';
   import { Operations } from './helper/operation';
@@ -6,24 +7,15 @@
   import { get } from 'svelte/store';
   import auth from './auth-service';
 
+  let modalText = '';
   let titleValue = '';
   let bodyValue = '';
   let deadlineValue = '';
   let loaderEnabled = false;
 
-  window.onload = async () => {
-    if (get(isAuthenticated)) {
-      const { lab5_todo } = await request.startFetchMyQuery(
-        Operations.queryGetAll(),
-      );
-      todos.set(lab5_todo);
-    }
-  };
-
   token.subscribe(async (tokenValue) => {
-    console.log(tokenValue);
     if (tokenValue != '') {
-      const lab5_todo = await request.startFetchMyQuery(
+      const {lab5_todo} = await request.startFetchMyQuery(
         Operations.queryGetAll(),
       );
       todos.set(lab5_todo);
@@ -33,44 +25,43 @@
   let auth0Client;
   onMount(async () => {
     auth0Client = await auth.createClient();
-    isAuthenticied.set(await auth0Client.isAuthenticied());
-    const accessToken = await auth0Client.getIdTokenClaims();
-    if (accessToken) {
-      token.set(accessToken.__raw);
-    }
+    isAuthenticated.set(await auth0Client.isAuthenticated());
     user.set(await auth0Client.getUser());
+    if (isAuthenticated) {
+      const accessToken = await auth0Client.getIdTokenClaims();
+      if(accessToken){
+      token.set(accessToken.__raw);
+      }
+    }
   });
 
   function login() {
     auth.loginWithPopup(auth0Client);
   }
+
   function logout() {
     auth.logout(auth0Client);
   }
 
   const addTask = async () => {
-    try {
+    loaderEnabled = true;
       if (titleValue == '') {
-        alert('Title can`t be empty!');
+        openModal('Title can not be empty!');
         loaderEnabled = false;
         return;
       }
       if (deadlineValue == '') {
-        const { inserted } = await request.startExecuteMyMutation(
+        const { insert_lab5_todo } = await request.startExecuteMyMutation(
           Operations.mutationInsertWithoutDeadline(titleValue, bodyValue),
         );
-        todos.update((n) => [...n, inserted.returning[0]]);
+        todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
       } else {
-        const { inserted } = await request.startExecuteMyMutation(
+        const { insert_lab5_todo } = await request.startExecuteMyMutation(
           Operations.mutationInsert(titleValue, bodyValue, deadlineValue),
         );
-        todos.update((n) => [...n, inserted.returning[0]]);
+        todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
       }
-    } catch (e) {
-      console.log(e);
-    } finally {
       loaderEnabled = false;
-    }
   };
   const deleteTask = async (id) => {
     loaderEnabled = true;
@@ -87,38 +78,56 @@
     );
     loaderEnabled = false;
   };
+  const openModal = (text) => {
+    modalText = text;
+  };
+
+  const closeModal = () => {
+    modalText = '';
+  };
+
+  window.onoffline = () => {
+    openModal('You are currently offline!');
+  };
 </script>
 
 <main>
   <div>
     {#if $isAuthenticated}
-      {#if $todos.loading}
-        <div class="loader" />
-      {:else if $todos.error}
-        <h1 class="message">error</h1>
-      {:else if $todos.data}
         {#if loaderEnabled}
           <div class="loader" />
         {/if}
+        {#if modalText}
+        <div class="modal-container">
+          <div class="modal">
+            <h1>Error</h1>
+            <p>{modalText}</p>
+            <button class="modal_button" id="close" on:click={closeModal}>
+              Close
+            </button>
+          </div>
+        </div>
+      {/if}
+      <button class=login on:click={logout}>Log out</button>
         <form class="form" on:submit|preventDefault={addTask}>
           <div class="form__section">
             <input
               type="text"
               name="Title"
               placeholder="Title"
-              on:input={(event) => (titleValue = event.target.value)}
+              bind:value={titleValue}
             />
             <input
               type="text"
               body="body"
               placeholder="body"
-              on:input={(event) => (bodyValue = event.target.value)}
+              bind:value={bodyValue}
             />
             <input
               type="date"
               body="deadline"
               placeholder="deadline"
-              on:input={(event) => (deadlineValue = event.target.value)}
+              bind:value={deadlineValue}
             />
           </div>
           <button>Add task</button>
@@ -133,7 +142,7 @@
             <th>Deadline</th>
             <th>Delete</th>
           </tr>
-          {#each $todos.data.todo_pinkpanther as task (task.id)}
+          {#each $todos as task}
             <tr>
               <td
                 ><input
@@ -154,9 +163,8 @@
             </tr>
           {/each}
         </table>
-      {/if}
     {:else}
-      <button on:click={login}>Log in</button>
+      <button class="login mainpage" on:click={login}>Log in</button>
     {/if}
   </div>
 </main>
@@ -172,6 +180,8 @@
     --delete-color: rgb(163, 13, 13);
     --table-color: #3e3cca;
     --button-color: #4caf50;
+    --login-button: #4676D7;
+    --login-button-hover: #1d49aa;
   }
   main {
     margin: 0;
@@ -197,12 +207,6 @@
     padding: 10px;
   }
 
-  .message {
-    position: absolute;
-    top: 40%;
-    left: 50%;
-  }
-
   table {
     border-collapse: collapse;
     margin: auto;
@@ -214,6 +218,33 @@
   button {
     cursor: pointer;
   }
+  .login{
+    height: 50px;
+    width: 200px;
+  appearance: none;
+  border: 0;
+  border-radius: 5px;
+  background: var(--login-button);
+  color: var(--light-color);
+  padding: 8px 16px;
+  font-size: 16px;
+  position: absolute;
+  right: 0;
+  }
+  .login:hover {
+  background: var(--login-button-hover);
+}
+
+.login:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--light-color);
+}
+.login.mainpage{
+  position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+}
   caption {
     background: var(--table-color);
     border-top-left-radius: 3px;
@@ -257,6 +288,38 @@
     top: 2px;
     left: 2px;
   }
+  .modal-container {
+    background: rgba(0, 0, 0, 0.3);
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    z-index: 1;
+  }
+
+  .modal {
+    background-color: var(--light-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    width: 600px;
+    border-radius: 5px;
+    padding: 30px 50px;
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .modal h1 {
+    font-size: 20px;
+    margin: 0;
+  }
+  .modal p {
+    font-size: 14px;
+    opacity: 0.9;
+  }
 
   .loader {
     position: fixed;
@@ -274,8 +337,7 @@
     margin: 8px;
     border-radius: 50%;
     border: 6px solid;
-    border-color: var(--button-hover-color) transparent
-      var(--button-hover-color) transparent;
+    border-color: var(--button-hover-color) transparent;
     animation: loader 1.2s linear infinite;
   }
   @keyframes loader {
