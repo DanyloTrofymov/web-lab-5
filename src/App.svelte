@@ -1,10 +1,10 @@
 <script>
   import request from './helper/request';
   import { Operations } from './helper/operation';
-  import { todos, isAuthenticied, user, token } from './store';
+  import { todos, isAuthenticated, user, token } from './store';
   import { onMount } from 'svelte';
   import { get } from 'svelte/store';
-  import auth from '.auth-service';
+  import auth from './auth-service';
 
   let titleValue = '';
   let bodyValue = '';
@@ -12,7 +12,7 @@
   let loaderEnabled = false;
 
   window.onload = async () => {
-    if (get(isAuthenticied)) {
+    if (get(isAuthenticated)) {
       const { lab5_todo } = await request.startFetchMyQuery(
         Operations.queryGetAll(),
       );
@@ -91,7 +91,7 @@
 
 <main>
   <div>
-    {#if $isAuthenticied}
+    {#if $isAuthenticated}
       {#if $todos.loading}
         <div class="loader" />
       {:else if $todos.error}
