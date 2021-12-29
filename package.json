@@ -36,7 +36,6 @@
     "svelte": "^3.0.0"
   },
   "dependencies": {
-    "dotenv": "^10.0.0",
     "@auth0/auth0-spa-js": "^1.19.3",
     "graphql": "^16.2.0",
     "rollup-plugin-polyfill-node": "^0.8.0",
