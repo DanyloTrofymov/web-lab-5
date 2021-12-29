@@ -54,20 +54,14 @@
         .startExecuteMyMutation(
           Operations.mutationInsertWithoutDeadline(titleValue, bodyValue),
         )
-        .catch(
-          () => openModal('Unexpexted request error!'),
-          (loaderEnabled = false),
-        );
+        .catch((e) => openModal(e), (loaderEnabled = false));
       todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
     } else {
       const { insert_lab5_todo } = await request
         .startExecuteMyMutation(
           Operations.mutationInsert(titleValue, bodyValue, deadlineValue),
         )
-        .catch(
-          () => openModal('Unexpexted request error!'),
-          (loaderEnabled = false),
-        );
+        .catch((e) => openModal(e), (loaderEnabled = false));
       todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
     }
     loaderEnabled = false;
@@ -76,10 +70,7 @@
     loaderEnabled = true;
     const { deleted } = await request
       .startExecuteMyMutation(Operations.mutationDelete(id))
-      .catch(
-        () => openModal('Unexpexted request error!'),
-        (loaderEnabled = false),
-      );
+      .catch((e) => openModal(e), (loaderEnabled = false));
     todos.update((n) => n.filter((item) => item.id != id));
     loaderEnabled = false;
   };
@@ -87,10 +78,7 @@
     loaderEnabled = true;
     await request
       .startExecuteMyMutation(Operations.mutationChecked(id, checked))
-      .catch(
-        () => openModal('Unexpexted request error!'),
-        (loaderEnabled = false),
-      );
+      .catch((e) => openModal(e), (loaderEnabled = false));
     loaderEnabled = false;
   };
   const openModal = (text) => {
