@@ -41,15 +41,23 @@
   function logout() {
     auth.logout(auth0Client);
   }
+  const getTodaysDate = () => {
+    let today = new Date();
+    today.setHours(0);
+    today.setMinutes(0);
+    today.setSeconds(0);
+    today.setMilliseconds(0);
+    return today;
+  };
 
   const addTask = async () => {
     loaderEnabled = true;
-    if (titleValue == '') {
+    if (!titleValue) {
       openModal('Title can not be empty!');
       loaderEnabled = false;
       return;
     }
-    if (deadlineValue == '') {
+    if (!deadlineValue) {
       const { insert_lab5_todo } = await request
         .startExecuteMyMutation(
           Operations.mutationInsertWithoutDeadline(titleValue, bodyValue),
@@ -57,6 +65,13 @@
         .catch((e) => openModal(e), (loaderEnabled = false));
       todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
     } else {
+      console.log(new Date(deadlineValue));
+      console.log(new Date());
+      if (new Date(deadlineValue) < getTodaysDate()) {
+        openModal('Deadline can not be earlier than today');
+        loaderEnabled = false;
+        return;
+      }
       const { insert_lab5_todo } = await request
         .startExecuteMyMutation(
           Operations.mutationInsert(titleValue, bodyValue, deadlineValue),
@@ -135,37 +150,41 @@
         </div>
         <button>Add task</button>
       </form>
-      <table border="1">
-        <caption>ToDo</caption>
-        <tr>
-          <th>Done</th>
-          <th>Id</th>
-          <th>Title</th>
-          <th>Body</th>
-          <th>Deadline</th>
-          <th>Delete</th>
-        </tr>
-        {#each $todos as task}
+      {#if $todos.length != 0}
+        <table border="1">
+          <caption>ToDo</caption>
           <tr>
-            <td
-              ><input
-                type="checkbox"
-                checked={task.done}
-                on:click={() => updateChecked(task.id, !task.done)}
-              /></td
-            >
-            <td>{task.id}</td>
-            <td>{task.noteTitle}</td>
-            <td>{task.noteBody}</td>
-            <td>{task.deadline}</td>
-            <td
-              ><button class="delete" on:click={() => deleteTask(task.id)}
-                >Delete</button
-              ></td
-            >
+            <th>Done</th>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Body</th>
+            <th>Deadline</th>
+            <th>Delete</th>
           </tr>
-        {/each}
-      </table>
+          {#each $todos as task}
+            <tr>
+              <td
+                ><input
+                  type="checkbox"
+                  checked={task.done}
+                  on:click={() => updateChecked(task.id, !task.done)}
+                /></td
+              >
+              <td>{task.id}</td>
+              <td>{task.noteTitle}</td>
+              <td>{task.noteBody}</td>
+              <td>{task.deadline}</td>
+              <td
+                ><button class="delete" on:click={() => deleteTask(task.id)}
+                  >Delete</button
+                ></td
+              >
+            </tr>
+          {/each}
+        </table>
+      {:else}
+        <h1 class="message">You can add some todos using form above</h1>
+      {/if}
     {:else}
       <button class="login mainpage" on:click={login}>Log in</button>
     {/if}
@@ -181,6 +200,7 @@
     --button-hover-color: gray;
     --loader-color: gray;
     --delete-color: rgb(163, 13, 13);
+    --button-hover: rgba(0, 0, 0, 0.3);
     --table-color: #3e3cca;
     --button-color: #4caf50;
     --login-button: #4676d7;
@@ -189,6 +209,12 @@
   main {
     margin: 0;
     max-width: 100%;
+  }
+  .message {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translateX(-50%);
   }
   .form {
     background-color: var(--form-background-color);
@@ -208,6 +234,10 @@
     border: 1px solid var(--light-color);
     border-radius: 3px;
     padding: 10px;
+  }
+
+  .form button:hover {
+    background-color: var(--button-hover);
   }
 
   table {
@@ -231,7 +261,9 @@
     color: var(--light-color);
     padding: 8px 16px;
     font-size: 16px;
-    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    position: relative;
     right: 0;
   }
   .login:hover {
@@ -330,6 +362,7 @@
     left: 50%;
     width: 80px;
     height: 80px;
+    z-index: 2;
   }
   .loader:after {
     background: rgba(0, 0, 0, 0.7);
