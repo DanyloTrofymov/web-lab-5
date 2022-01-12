@@ -3,21 +3,25 @@ import { get } from 'svelte/store';
 
 class Request {
   async fetchGraphQL(operationsDoc, operationName, variables) {
-    const result = await fetch(
-      'https://web-lab-5-jwt.herokuapp.com/v1/graphql',
-      {
-        method: 'POST',
-        body: JSON.stringify({
-          query: operationsDoc,
-          variables,
-          operationName,
-        }),
-        headers: {
-          Authorization: `Bearer ${get(token)}`,
+    try {
+      const result = await fetch(
+        'https://web-lab-5-jwt.herokuapp.com/v1/graphql',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            query: operationsDoc,
+            variables,
+            operationName,
+          }),
+          headers: {
+            Authorization: `Bearer ${get(token)}`,
+          },
         },
-      },
-    );
-    return await result.json(); // eslint-disable-line
+      );
+      return await result.json(); // eslint-disable-line
+    } catch (e) {
+      modalText.set(e.message);
+    }
   }
   fetchMyQuery(operationsDoc) {
     return this.fetchGraphQL(operationsDoc, 'MyQuery', {});
@@ -27,11 +31,10 @@ class Request {
     const { errors, data } = await this.fetchMyQuery(operationsDoc);
 
     if (errors) {
-      // handle those errors like a pro
       console.error(errors);
+      throw new Error(errors[0].message);
     }
 
-    // do something great with this precious data
     console.log(data);
     return data;
   }
@@ -43,11 +46,10 @@ class Request {
     const { errors, data } = await this.executeMyMutation(operationsDoc);
 
     if (errors) {
-      // handle those errors like a pro
       console.error(errors);
+      throw new Error(errors[0].message);
     }
 
-    // do something great with this precious data
     console.log(data);
     return data;
   }

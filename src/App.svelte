@@ -1,36 +1,44 @@
 <script>
   import request from './helper/request';
   import { Operations } from './helper/operation';
-  import { todos, isAuthenticated, user, token } from './store';
+  import { todos, isAuthenticated, user, token, modalText } from './store';
   import { onMount } from 'svelte';
   import { get } from 'svelte/store';
   import auth from './auth-service';
 
-  let modalText = '';
   let titleValue = '';
   let bodyValue = '';
   let deadlineValue = '';
   let loaderEnabled = false;
+  let offline = false;
 
   token.subscribe(async (tokenValue) => {
-    if (tokenValue != '') {
-      const { lab5_todo } = await request.startFetchMyQuery(
-        Operations.queryGetAll(),
-      );
-      todos.set(lab5_todo);
+    try {
+      if (tokenValue != '') {
+        const { lab5_todo } = await request.startFetchMyQuery(
+          Operations.queryGetAll(),
+        );
+        todos.set(lab5_todo);
+      }
+    } catch (e) {
+      openModal(e);
     }
   });
 
   let auth0Client;
   onMount(async () => {
-    auth0Client = await auth.createClient();
-    isAuthenticated.set(await auth0Client.isAuthenticated());
-    user.set(await auth0Client.getUser());
-    if (isAuthenticated) {
-      const accessToken = await auth0Client.getIdTokenClaims();
-      if (accessToken) {
-        token.set(accessToken.__raw);
+    try {
+      auth0Client = await auth.createClient();
+      isAuthenticated.set(await auth0Client.isAuthenticated());
+      user.set(await auth0Client.getUser());
+      if (isAuthenticated) {
+        const accessToken = await auth0Client.getIdTokenClaims();
+        if (accessToken) {
+          token.set(accessToken.__raw);
+        }
       }
+    } catch (e) {
+      openModal(e);
     }
   });
 
@@ -57,29 +65,28 @@
       loaderEnabled = false;
       return;
     }
-    if (!deadlineValue) {
-      const { insert_lab5_todo } = await request
-        .startExecuteMyMutation(
+    try {
+      if (!deadlineValue) {
+        const { insert_lab5_todo } = await request.startExecuteMyMutation(
           Operations.mutationInsertWithoutDeadline(titleValue, bodyValue),
-        )
-        .catch((e) => openModal(e), (loaderEnabled = false));
-      todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
-    } else {
-      console.log(new Date(deadlineValue));
-      console.log(new Date());
-      if (new Date(deadlineValue) < getTodaysDate()) {
-        openModal('Deadline can not be earlier than today');
-        loaderEnabled = false;
-        return;
-      }
-      const { insert_lab5_todo } = await request
-        .startExecuteMyMutation(
+        );
+        todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
+      } else {
+        if (new Date(deadlineValue) < getTodaysDate()) {
+          openModal('Deadline can not be earlier than today');
+          loaderEnabled = false;
+          return;
+        }
+        const { insert_lab5_todo } = await request.startExecuteMyMutation(
           Operations.mutationInsert(titleValue, bodyValue, deadlineValue),
-        )
-        .catch((e) => openModal(e), (loaderEnabled = false));
-      todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
+        );
+        todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
+      }
+      loaderEnabled = false;
+    } catch (e) {
+      openModal(e);
+      loaderEnabled = false;
     }
-    loaderEnabled = false;
   };
   const deleteTask = async (id) => {
     loaderEnabled = true;
@@ -97,29 +104,35 @@
     loaderEnabled = false;
   };
   const openModal = (text) => {
-    modalText = text;
+    modalText.set(text);
   };
 
   const closeModal = () => {
-    modalText = '';
+    modalText.set('');
   };
 
   window.onoffline = () => {
+    offline = true;
     openModal('You are currently offline!');
+  };
+  window.ononline = () => {
+    offline = false;
   };
 </script>
 
 <main>
   <div>
-    {#if $isAuthenticated}
+    {#if offline}
+      <h1 class="message">Check your internet connection</h1>
+    {:else if $isAuthenticated}
       {#if loaderEnabled}
         <div class="loader" />
       {/if}
-      {#if modalText}
+      {#if $modalText}
         <div class="modal-container">
           <div class="modal">
             <h1>Error</h1>
-            <p>{modalText}</p>
+            <p>{$modalText}</p>
             <button class="modal_button" id="close" on:click={closeModal}>
               Close
             </button>
@@ -234,10 +247,6 @@
     border: 1px solid var(--light-color);
     border-radius: 3px;
     padding: 10px;
-  }
-
-  .form button:hover {
-    background-color: var(--button-hover);
   }
 
   table {
