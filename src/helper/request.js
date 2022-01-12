@@ -1,7 +1,9 @@
 import { token } from '../store';
 import { get } from 'svelte/store';
+import { modalText } from '../store';
 
 class Request {
+  // eslint-disable-next-line
   async fetchGraphQL(operationsDoc, operationName, variables) {
     try {
       const result = await fetch(
@@ -23,6 +25,7 @@ class Request {
       modalText.set(e.message);
     }
   }
+
   fetchMyQuery(operationsDoc) {
     return this.fetchGraphQL(operationsDoc, 'MyQuery', {});
   }
