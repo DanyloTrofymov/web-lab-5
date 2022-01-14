@@ -5,20 +5,18 @@ class Request {
   // eslint-disable-next-line
   async fetchGraphQL(operationsDoc, operationName, variables) {
     try {
-      const result = await fetch(
-        'https://web-lab-5-jwt.herokuapp.com/v1/graphql',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            query: operationsDoc,
-            variables,
-            operationName,
-          }),
-          headers: {
-            Authorization: `Bearer ${get(token)}`,
-          },
+      // eslint-disable-next-line
+      const result = await fetch(herokuenv, {
+        method: 'POST',
+        body: JSON.stringify({
+          query: operationsDoc,
+          variables,
+          operationName,
+        }),
+        headers: {
+          Authorization: `Bearer ${get(token)}`,
         },
-      );
+      });
       return await result.json(); // eslint-disable-line
     } catch (e) {
       errorArr.update((n) => [...n, e.message]);

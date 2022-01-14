@@ -49,6 +49,7 @@ export default {
     replace({
       domainenv: JSON.stringify(process.env.DOMAIN),
       clientidenv: JSON.stringify(process.env.CLIENTID),
+      herokuenv: JSON.stringify(process.env.HEROKU),
     }),
     svelte({
       compilerOptions: {
