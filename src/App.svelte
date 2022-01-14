@@ -1,16 +1,24 @@
 <script>
   import request from './helper/request';
   import { Operations } from './helper/operation';
-  import { todos, isAuthenticated, user, token, modalText } from './store';
+  import {
+    todos,
+    isAuthenticated,
+    user,
+    token,
+    errorArr,
+    loader,
+  } from './store';
   import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
   import auth from './auth-service';
+  import { Fetches } from './helper/api';
 
   let titleValue = '';
   let bodyValue = '';
   let deadlineValue = '';
-  let loaderEnabled = false;
+  let modalText = '';
   let offline = false;
+  let auth0Client;
 
   token.subscribe(async (tokenValue) => {
     try {
@@ -25,7 +33,6 @@
     }
   });
 
-  let auth0Client;
   onMount(async () => {
     try {
       auth0Client = await auth.createClient();
@@ -38,83 +45,59 @@
         }
       }
     } catch (e) {
-      openModal(e);
+      errorArr.update((n) => [...n, e.message]);
+      openModal();
     }
   });
 
   function login() {
-    auth.loginWithPopup(auth0Client);
+    try {
+      auth.loginWithPopup(auth0Client);
+    } catch (e) {
+      errorArr.update((n) => [...n, e.message]);
+      openModal();
+    }
   }
 
   function logout() {
     auth.logout(auth0Client);
   }
-  const getTodaysDate = () => {
-    let today = new Date();
-    today.setHours(0);
-    today.setMinutes(0);
-    today.setSeconds(0);
-    today.setMilliseconds(0);
-    return today;
+
+  const addTask = () => {
+    Fetches.addTask(titleValue, bodyValue, deadlineValue);
+    openModal();
   };
 
-  const addTask = async () => {
-    loaderEnabled = true;
-    if (!titleValue) {
-      openModal('Title can not be empty!');
-      loaderEnabled = false;
-      return;
+  const deleteTask = (id) => {
+    Fetches.deleteTask(id);
+    openModal();
+  };
+
+  const updateChecked = (id, checked) => {
+    Fetches.updateChecked(id, checked);
+    openModal();
+  };
+
+  const openModal = () => {
+    if ($errorArr.length != 0) {
+      modalText = $errorArr.pop();
     }
-    try {
-      if (!deadlineValue) {
-        const { insert_lab5_todo } = await request.startExecuteMyMutation(
-          Operations.mutationInsertWithoutDeadline(titleValue, bodyValue),
-        );
-        todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
-      } else {
-        if (new Date(deadlineValue) < getTodaysDate()) {
-          openModal('Deadline can not be earlier than today');
-          loaderEnabled = false;
-          return;
-        }
-        const { insert_lab5_todo } = await request.startExecuteMyMutation(
-          Operations.mutationInsert(titleValue, bodyValue, deadlineValue),
-        );
-        todos.update((n) => [...n, insert_lab5_todo.returning[0]]);
-      }
-      loaderEnabled = false;
-    } catch (e) {
-      openModal(e);
-      loaderEnabled = false;
-    }
-  };
-  const deleteTask = async (id) => {
-    loaderEnabled = true;
-    const { deleted } = await request
-      .startExecuteMyMutation(Operations.mutationDelete(id))
-      .catch((e) => openModal(e), (loaderEnabled = false));
-    todos.update((n) => n.filter((item) => item.id != id));
-    loaderEnabled = false;
-  };
-  const updateChecked = async (id, checked) => {
-    loaderEnabled = true;
-    await request
-      .startExecuteMyMutation(Operations.mutationChecked(id, checked))
-      .catch((e) => openModal(e), (loaderEnabled = false));
-    loaderEnabled = false;
-  };
-  const openModal = (text) => {
-    modalText.set(text);
   };
 
   const closeModal = () => {
-    modalText.set('');
+    if ($errorArr.length != 0) {
+      modalText = $errorArr.pop();
+    } else {
+      modalText = '';
+    }
   };
 
   window.onoffline = () => {
     offline = true;
-    openModal('You are currently offline!');
+    $errorArr.push('You are currently offline!');
+    openModal();
   };
+
   window.ononline = () => {
     offline = false;
   };
@@ -122,22 +105,22 @@
 
 <main>
   <div>
+    {#if modalText}
+      <div class="modal-container">
+        <div class="modal">
+          <h1>Error</h1>
+          <p>{modalText}</p>
+          <button class="modal_button" id="close" on:click={closeModal}>
+            Close
+          </button>
+        </div>
+      </div>
+    {/if}
     {#if offline}
       <h1 class="message">Check your internet connection</h1>
     {:else if $isAuthenticated}
-      {#if loaderEnabled}
+      {#if $loader != 0}
         <div class="loader" />
-      {/if}
-      {#if $modalText}
-        <div class="modal-container">
-          <div class="modal">
-            <h1>Error</h1>
-            <p>{$modalText}</p>
-            <button class="modal_button" id="close" on:click={closeModal}>
-              Close
-            </button>
-          </div>
-        </div>
       {/if}
       <button class="login" on:click={logout}>Log out</button>
       <form class="form" on:submit|preventDefault={addTask}>

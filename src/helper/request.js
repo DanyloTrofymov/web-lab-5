@@ -1,6 +1,5 @@
-import { token } from '../store';
+import { token, errorArr } from '../store';
 import { get } from 'svelte/store';
-import { modalText } from '../store';
 
 class Request {
   // eslint-disable-next-line
@@ -22,7 +21,7 @@ class Request {
       );
       return await result.json(); // eslint-disable-line
     } catch (e) {
-      modalText.set(e.message);
+      errorArr.update((n) => [...n, e.message]);
     }
   }
 
@@ -35,7 +34,7 @@ class Request {
 
     if (errors) {
       console.error(errors);
-      throw new Error(errors[0].message);
+      throw new Error(errors.message.join('\n'));
     }
 
     console.log(data);
@@ -50,7 +49,7 @@ class Request {
 
     if (errors) {
       console.error(errors);
-      throw new Error(errors[0].message);
+      throw new Error(errors.message.join('\n'));
     }
 
     console.log(data);

@@ -24,6 +24,7 @@ async function loginWithPopup(client, options) {
   } catch (e) {
     // eslint-disable-next-line
     console.error(e);
+    throw new Error(e);
   } finally {
     popupOpen.set(false);
   }
